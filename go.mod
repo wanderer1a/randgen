@@ -1,11 +1,8 @@
-module main
+module github.com/wanderer1a/randgen
 
 go 1.19
 
-require (
-	github.com/gocql/gocql v1.2.1
-	github.com/wanderer1a/randgen v0.0.0-20221030183551-a82b14339e40
-)
+require github.com/gocql/gocql v1.2.1
 
 require (
 	github.com/golang/snappy v0.0.4 // indirect
