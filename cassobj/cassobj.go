@@ -8,7 +8,7 @@ import (
 )
 
 func SessionInit() *gocql.Session {
-	cluster := gocql.NewCluster("10.0.2.11", "10.0.2.14")
+	cluster := gocql.NewCluster("10.0.1.11", "10.0.1.14")
 	cluster.Consistency = gocql.Quorum
 	session, err := cluster.CreateSession()
 	if err != nil {
