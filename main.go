@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"../cassobj"
+	"github.com/wanderer1a/randgen/cassobj"
 )
 
 func init() {
