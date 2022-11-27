@@ -2,19 +2,30 @@ package main
 
 import (
 	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
+	"log"
 	"math/rand"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/wanderer1a/randgen/cassobj"
 )
 
+var trx_count int
+
 func init() {
 	fmt.Println("init")
 	rand.Seed(time.Now().UnixNano())
-	ClusterInit(os.Args)
+	seeds := os.Getenv("CASSANDRA_SEEDS")
+	ClusterInit(seeds)
 	fmt.Println("init complete")
+	var err error
+	trx_count, err = strconv.Atoi(os.Getenv("NUMBER_TRX_TO_GENERATE"))
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func Seed() string {
@@ -22,7 +33,7 @@ func Seed() string {
 	return arg
 }
 
-func ClusterInit(args []string) {
+func ClusterInit(seeds string) {
 	//	type arguments struct {
 	//		key   string
 	//		value string
@@ -32,28 +43,22 @@ func ClusterInit(args []string) {
 	//		s: Seed,
 	//	}
 	//	fmt.Println(a)
-	fmt.Println("args: ", args)
-	for ind, el := range args {
-		fmt.Println("index: ", ind, "arg: ", el)
-	}
-	cassobj.KeyspaceCreate()
-	cassobj.PanTableCreate()
-	cassobj.TrxTableCrate()
+	cassobj.KeyspaceCreate(seeds)
+	cassobj.PanTableCreate(seeds)
+	cassobj.TrxTableCrate(seeds)
 }
 
 //func GenerateDictionaries() {
 //	cassobj.TrxTableCrate()
 //}
 
-func PanHashGenerate() {
-	pan := RandIntStr(16)
-	fmt.Println(pan)
+func PanHashGenerate(pan string) string {
 	h := sha256.New()
 	h.Write([]byte(pan))
-	fmt.Printf("%x", h.Sum(nil))
+	return hex.EncodeToString(h.Sum(nil))
 }
 
-var letterRunes = []rune("1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM/.,;[]{}!@#$%&*()")
+var letterRunes = []rune("1234567890qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM")
 var digitsRunes = []rune("1234567890")
 
 func RandString(n int) string {
@@ -83,7 +88,7 @@ type stringn struct {
 }
 
 type transaction_record struct {
-	part_key                  func(int) string
+	part_key                  string
 	proc_date                 string
 	tran_date                 string
 	tran_datetime             string
@@ -142,6 +147,7 @@ type transaction_record struct {
 	is_bad_pin_decline        int
 	is_oom_decline            int
 	is_tech_decline           int
+	pan                       string
 }
 
 func main() {
@@ -152,5 +158,20 @@ func main() {
 	now := time.Now().UTC().UnixNano()
 	fmt.Println("Current datetime:", now)
 	fmt.Println("Random Int length of 5:", RandInt(5))
-	PanHashGenerate()
+
+	for i := 0; i <= trx_count; i++ {
+		fmt.Println(i)
+		pan := RandIntStr(16)
+		card_pan_sha256 := PanHashGenerate(pan)
+		trx := transaction_record{card_pan_sha256: card_pan_sha256}
+		trx.part_key = "27.11.2022"
+		trx.tran_date = "27.11.2022"
+		trx.pan = pan
+		trx.acceptor_city = RandString(10)
+		trx.acceptor_country = RandString(10)
+		trx.acceptor_name = RandString(20)
+		trx.acceptor_postal_code = RandInt(6)
+		fmt.Println(trx)
+
+	}
 }
