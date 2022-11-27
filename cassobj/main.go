@@ -28,7 +28,7 @@ func PanTableCreate(seeds string) {
 	if err := session.Query(`CREATE TABLE IF NOT EXISTS generator.card_pan_sha256
 								(
 									number	                  int,
-									card_pan	              text,
+									card_pan	              bigint,
 									card_pan_sha256           text,
 								PRIMARY KEY (number)
 								) `, "generator").Exec(); err != nil {
@@ -115,6 +115,22 @@ func TrxTableCrate(seeds string) {
 	session.Close()
 }
 
+func PanInsert(num int, pan int, pan_hash string, seeds string) {
+	session := SessionInit(seeds)
+	fmt.Print("Ready to pan and hash insertion...")
+	if err := session.Query(`INSERT INTO generator.card_pan_sha256
+							(
+								number,
+								card_pan,
+								card_pan_sha256
+							) VALUES
+							(?, ?, ?)`,
+		num, pan, pan_hash).Exec(); err != nil {
+		fmt.Print("Error pan and hash insertion")
+		log.Fatal(err)
+	}
+
+}
 func KeyspaceCreate(seeds string) {
 	session := SessionInit(seeds)
 	fmt.Print("If not exists creating keyspace 'generator'...")

@@ -14,15 +14,18 @@ import (
 )
 
 var trx_count int
+var card_count int
+var seeds string
 
 func init() {
 	fmt.Println("init")
+	seeds = os.Getenv("CASSANDRA_SEEDS")
 	rand.Seed(time.Now().UnixNano())
-	seeds := os.Getenv("CASSANDRA_SEEDS")
-	ClusterInit(seeds)
+	ClusterInit()
 	fmt.Println("init complete")
 	var err error
 	trx_count, err = strconv.Atoi(os.Getenv("NUMBER_TRX_TO_GENERATE"))
+	card_count, err = strconv.Atoi(os.Getenv("NUMBER_CARDS_TO_GENERATE"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -33,7 +36,7 @@ func Seed() string {
 	return arg
 }
 
-func ClusterInit(seeds string) {
+func ClusterInit() {
 	//	type arguments struct {
 	//		key   string
 	//		value string
@@ -159,19 +162,29 @@ func main() {
 	fmt.Println("Current datetime:", now)
 	fmt.Println("Random Int length of 5:", RandInt(5))
 
-	for i := 0; i <= trx_count; i++ {
-		fmt.Println(i)
-		pan := RandIntStr(16)
-		card_pan_sha256 := PanHashGenerate(pan)
-		trx := transaction_record{card_pan_sha256: card_pan_sha256}
-		trx.part_key = "27.11.2022"
-		trx.tran_date = "27.11.2022"
-		trx.pan = pan
-		trx.acceptor_city = RandString(10)
-		trx.acceptor_country = RandString(10)
-		trx.acceptor_name = RandString(20)
-		trx.acceptor_postal_code = RandInt(6)
-		fmt.Println(trx)
+	for t := 0; t <= card_count; t++ {
+		var pan int
+		var err error
+		pan, err = strconv.Atoi(RandIntStr(16))
+		if err != nil {
+			log.Fatal(err)
+		}
 
+		card_pan_sha256 := PanHashGenerate(strconv.Itoa(pan))
+		cassobj.PanInsert(t, pan, card_pan_sha256, seeds)
+
+		for i := 0; i <= trx_count; i++ {
+			fmt.Println(i)
+			trx := transaction_record{card_pan_sha256: card_pan_sha256}
+			trx.part_key = "27.11.2022"
+			trx.tran_date = "27.11.2022"
+			trx.pan = strconv.Itoa(pan)
+			trx.acceptor_city = RandString(10)
+			trx.acceptor_country = RandString(10)
+			trx.acceptor_name = RandString(20)
+			trx.acceptor_postal_code = RandInt(6)
+			fmt.Println(trx)
+
+		}
 	}
 }
