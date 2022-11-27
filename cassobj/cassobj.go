@@ -7,8 +7,9 @@ import (
 	"github.com/gocql/gocql"
 )
 
-func SessionInit() *gocql.Session {
-	cluster := gocql.NewCluster("10.0.1.11", "10.0.1.14")
+func SessionInit(seeds string) *gocql.Session {
+	cluster := gocql.NewCluster(seeds)
+	cluster.WriteTimeout = 10000
 	cluster.Consistency = gocql.Quorum
 	session, err := cluster.CreateSession()
 	if err != nil {
@@ -17,8 +18,12 @@ func SessionInit() *gocql.Session {
 	return session
 }
 
-func PanTableCreate() {
-	session := SessionInit()
+func TrxInsert(trx []string) {
+
+}
+
+func PanTableCreate(seeds string) {
+	session := SessionInit(seeds)
 	fmt.Print("If not exists creating table 'card_pan_sha256'...")
 	if err := session.Query(`CREATE TABLE IF NOT EXISTS generator.card_pan_sha256
 								(
@@ -36,8 +41,8 @@ func PanTableCreate() {
 	session.Close()
 }
 
-func TrxTableCrate() {
-	session := SessionInit()
+func TrxTableCrate(seeds string) {
+	session := SessionInit(seeds)
 	fmt.Print("If not exists creating table 'trx'...")
 	if err := session.Query(`CREATE TABLE IF NOT EXISTS generator.trx
 								(
@@ -110,8 +115,8 @@ func TrxTableCrate() {
 	session.Close()
 }
 
-func KeyspaceCreate() {
-	session := SessionInit()
+func KeyspaceCreate(seeds string) {
+	session := SessionInit(seeds)
 	fmt.Print("If not exists creating keyspace 'generator'...")
 	if err := session.Query(`CREATE KEYSPACE IF NOT EXISTS generator
 							WITH REPLICATION =
