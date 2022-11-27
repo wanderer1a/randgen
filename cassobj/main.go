@@ -1,4 +1,4 @@
-package cassobj
+package main
 
 import (
 	"fmt"
