@@ -3,6 +3,6 @@ services:
   generator:
     build: .
     environment:
-      NUMBER_CARDS_TO_GENERATE: 10
+      NUMBER_CARDS_TO_GENERATE: 100
       NUMBER_TRX_TO_GENERATE: 10
-      CASSANDRA_SEEDS: "10.0.2.11,10.0.2.14"
+      CASSANDRA_SEEDS: "10.0.2.11"
